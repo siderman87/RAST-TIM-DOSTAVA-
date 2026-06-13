@@ -43,6 +43,12 @@ function preberiExcel() {
       const sheet = workbook.Sheets[sheetName];
 
       const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      
+      json.forEach(d => {
+  d.voznik = "";
+  d.Status = "Pripravljeno";
+  d.cas_spremembe = "";
+});
 
       localStorage.setItem("dostave", JSON.stringify(json));
 
