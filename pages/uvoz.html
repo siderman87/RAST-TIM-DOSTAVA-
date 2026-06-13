@@ -28,6 +28,15 @@
 
 <script>
 
+function narediKljuc(d) {
+  return String(
+    d["Št. dob."] ||
+    d["Id naročila"] ||
+    d["Račun"] ||
+    (d["Stranka"] + "-" + d["Lokacija dostave"] + "-" + d["Vrednost"])
+  ).trim();
+}
+
 function preberiExcel() {
 
   const file = document.getElementById("excelFile").files[0];
@@ -45,31 +54,50 @@ function preberiExcel() {
     const workbook = XLSX.read(data, { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    let noveDostave = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    let uvoz = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    noveDostave = noveDostave.map(d => {
-      return {
+    let stareDostave = JSON.parse(localStorage.getItem("dostave")) || [];
+
+    let obstojeciKluci = stareDostave.map(d => narediKljuc(d));
+
+    let dodane = 0;
+    let preskocene = 0;
+
+    uvoz.forEach(d => {
+
+      const kljuc = narediKljuc(d);
+
+      if (!kljuc) {
+        preskocene++;
+        return;
+      }
+
+      if (obstojeciKluci.includes(kljuc)) {
+        preskocene++;
+        return;
+      }
+
+      let novaDostava = {
         ...d,
         voznik: "",
         Status: "Pripravljeno",
         cas_spremembe: ""
       };
+
+      stareDostave.push(novaDostava);
+      obstojeciKluci.push(kljuc);
+      dodane++;
+
     });
 
-    let stareDostave = JSON.parse(localStorage.getItem("dostave")) || [];
-
-    let vseDostave = [
-      ...stareDostave,
-      ...noveDostave
-    ];
-
-    localStorage.setItem("dostave", JSON.stringify(vseDostave));
+    localStorage.setItem("dostave", JSON.stringify(stareDostave));
 
     document.getElementById("info").innerText =
-      "Dodane nove dostave: " + noveDostave.length +
-      " | Skupaj dostav: " + vseDostave.length;
+      "Dodane nove dostave: " + dodane +
+      " | Preskočene podvojene: " + preskocene +
+      " | Skupaj dostav: " + stareDostave.length;
 
-    alert("Excel je uvožen. Stare dostave so ostale shranjene.");
+    alert("Uvoz končan. Stare dostave in dodeljeni vozniki so ostali.");
 
   };
 
