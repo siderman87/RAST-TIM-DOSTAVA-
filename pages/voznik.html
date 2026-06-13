@@ -25,7 +25,9 @@ if (user) {
   document.getElementById("imeVoznika").innerText = user.name;
 }
 
-const moje = dostave.filter(d => d.voznik === user.name);
+const moje = dostave.filter(d => 
+  String(d.voznik).trim().toUpperCase() === String(user.name).trim().toUpperCase()
+);
 
 let html = "";
 
