@@ -70,15 +70,17 @@ function spremeniStatus(index, status) {
   alert("Status spremenjen v: " + status);
 
   prikaziMojeDostave();
-}
-
-prikaziMojeDostave();
   
   function odpriDobavnico(index) {
   localStorage.setItem("izbranaDobavnica", index);
   window.location.href = "dobavnica.html";
 }
+
+
+prikaziMojeDostave();
+  
 </script>
+  
   
 </body>
 </html>
