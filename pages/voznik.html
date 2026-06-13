@@ -16,9 +16,8 @@
 
     <p><b>Naslov:</b> Ljubljana</p>
 
-    <p><b>Status:</b> Pripravljeno</p>
-
-    <button>Dostavljeno</button>
+    <p><b>Status:</b> <span id="status">Pripravljeno</span></p>
+<button onclick="dostavljeno()">Dostavljeno</button>
 </div>
     <div class="delivery">
       <strong>Test dostava</strong><br>
@@ -34,6 +33,10 @@
 const user = JSON.parse(localStorage.getItem("user"));
 if (user) {
   document.getElementById("imeVoznika").innerText = user.name;
+}
+</script><script>
+function dostavljeno() {
+  document.getElementById("status").innerText = "Dostavljeno";
 }
 </script>
     }
