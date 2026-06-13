@@ -9,48 +9,50 @@
 
 <body>
 <div class="container">
-<h1>🚚 Dostave</h1>
-
-<div id="seznam"></div>
-
-<a class="btn" href="admin.html">Nazaj</a>
+  <h1>🚚 Dostave</h1>
+  <div id="seznam"></div>
+  <a class="btn" href="admin.html">Nazaj</a>
 </div>
 
 <script>
 let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
-let html = "";
+function prikaziDostave() {
+  let html = "";
 
-dostave.forEach((d, index) => {
-  html += `
-    <div class="delivery">
-      <h3>${d["Stranka"] || "Brez stranke"}</h3>
-      <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
-      <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
-      <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
-      <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
+  dostave.forEach((d, index) => {
+    html += `
+      <div class="delivery">
+        <h3>${d["Stranka"] || "Brez stranke"}</h3>
+        <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
+        <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
+        <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+        <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
 
-      <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
-      <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
-      <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
-      <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
-      <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
-    </div>
-  `;
-});
+        <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
+        <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
+        <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
+        <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
+        <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
+      </div>
+    `;
+  });
 
-document.getElementById("seznam").innerHTML = html;
+  document.getElementById("seznam").innerHTML = html;
+}
 
 function dodeli(index, voznik) {
-  dostave[index]["voznik"] = voznik;
-  dostave[index]["Status"] = "Pripravljeno";
+  dostave[index].voznik = voznik;
+  dostave[index].Status = "Pripravljeno";
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
 
   alert("Dostava dodeljena: " + voznik);
 
-  window.location.reload();
+  prikaziDostave();
 }
+
+prikaziDostave();
 </script>
 
 </body>
