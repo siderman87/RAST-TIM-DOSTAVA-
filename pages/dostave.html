@@ -1,59 +1,102 @@
+```html
 <!DOCTYPE html>
 <html lang="sl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dostave</title>
+
 <link rel="stylesheet" href="../css/styles.css">
+
 </head>
 
 <body>
+
 <div class="container">
-  <h1>🚚 Dostave</h1>
-  <div id="seznam"></div>
-  <a class="btn" href="admin.html">Nazaj</a>
+
+<h1>🚚 Dostave</h1>
+
+<div id="seznam"></div>
+
+<a class="btn" href="admin.html">Nazaj</a>
+
 </div>
 
 <script>
+
 let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
-function prikaziDostave() {
-  let html = "";
+function prikaziDostave(){
 
-  dostave.forEach((d, index) => {
-    html += `
-      <div class="delivery">
+    let html = "";
+
+    dostave.forEach((d,index)=>{
+
+        html += `
+
+        <div class="delivery">
+
         <h3>${d["Stranka"] || "Brez stranke"}</h3>
+
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
+
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
+
         <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+
         <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
 
-        <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
-        <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
-        <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
-        <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
-        <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
-      </div>
-    `;
-  });
+        <button onclick="dodeli(${index},'ROK')">
+        Dodeli ROK
+        </button>
 
-  document.getElementById("seznam").innerHTML = html;
+        <button onclick="dodeli(${index},'ANŽE')">
+        Dodeli ANŽE
+        </button>
+
+        <button onclick="dodeli(${index},'BLAŽ')">
+        Dodeli BLAŽ
+        </button>
+
+        <button onclick="dodeli(${index},'AJDIN')">
+        Dodeli AJDIN
+        </button>
+
+        <button onclick="dodeli(${index},'MATEVŽ')">
+        Dodeli MATEVŽ
+        </button>
+
+        </div>
+
+        `;
+
+    });
+
+    document.getElementById("seznam").innerHTML = html;
+
 }
 
-function dodeli(index, voznik) {
-  dostave[index].voznik = voznik;
-  dostave[index].Status = "Pripravljeno";
+function dodeli(index,voznik){
 
-  localStorage.setItem("dostave", JSON.stringify(dostave));
+    dostave[index]["voznik"] = voznik;
 
-  alert("Dostava dodeljena: " + voznik);
+    dostave[index]["Status"] = "Pripravljeno";
 
-  prikaziDostave();
+    localStorage.setItem(
+        "dostave",
+        JSON.stringify(dostave)
+    );
+
+    alert("Dostava dodeljena: " + voznik);
+
+    prikaziDostave();
+
 }
 
 prikaziDostave();
+
 </script>
 
 </body>
 </html>
+```
