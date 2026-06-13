@@ -1,15 +1,83 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-<meta charset="UTF-8">
-<title>Voznik</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uvoz TRIS Excel</title>
+
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
 
-<h1>Voznik</h1>
+<div class="container">
 
-<a href="../index.html">Domov</a>
+<h1>📦 Uvoz TRIS Excel</h1>
+
+<input type="file" id="excelFile">
+
+<br><br>
+
+<button onclick="preberiExcel()">Naloži Excel</button>
+
+<div id="rezultat"></div>
+
+</div>
+
+<script>
+
+function preberiExcel(){
+
+    const file = document.getElementById("excelFile").files[0];
+
+    if(!file){
+        alert("Izberi Excel datoteko.");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e){
+
+        const data = new Uint8Array(e.target.result);
+
+        const workbook = XLSX.read(data,{type:'array'});
+
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+        const json = XLSX.utils.sheet_to_json(sheet);
+
+        let html = "";
+
+        json.forEach(vrstica=>{
+
+            html += `
+            <div class="delivery">
+
+            <h3>${vrstica["Stranka"] ?? ""}</h3>
+
+            <p><b>Lokacija:</b> ${vrstica["Lokacija dostave"] ?? ""}</p>
+
+            <p><b>Vrednost:</b> ${vrstica["Vrednost"] ?? ""}</p>
+
+            <p><b>Status:</b> Pripravljeno</p>
+
+            </div>
+            `;
+
+        });
+
+        document.getElementById("rezultat").innerHTML = html;
+
+    }
+
+    reader.readAsArrayBuffer(file);
+
+}
+
+</script>
 
 </body>
 </html>
