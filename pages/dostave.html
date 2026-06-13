@@ -17,6 +17,10 @@
 
   <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
 
+  <button onclick="odstraniDostavo(${index})">
+🗑️ Odstrani dostavo
+</button>
+
   <div id="seznam"></div>
 
   <a class="btn" href="admin.html">Nazaj v admin</a>
@@ -121,7 +125,15 @@ function resetirajDodelitve() {
 }
 
 prikaziDostave();
-</script>
+</script>function odstraniDostavo(index) {
+  if (!confirm("Res odstranim to dostavo?")) return;
+
+  dostave.splice(index, 1);
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+
+  prikaziDostave();
+}
 
 </body>
 </html>
