@@ -31,6 +31,12 @@
 const START_NASLOV = "Vesca 18, 1217 Vodice, Slovenija";
 const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
+function statusClass(status) {
+  if (status === "Dostavljeno") return "status-dostavljeno";
+  if (status === "Na poti") return "status-napoti";
+  return "status-pripravljeno";
+}
+
 function pocakaj(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -39,9 +45,7 @@ async function geocode(naslov) {
   const cacheKey = "geo_" + naslov;
   const cached = localStorage.getItem(cacheKey);
 
-  if (cached) {
-    return JSON.parse(cached);
-  }
+  if (cached) return JSON.parse(cached);
 
   const url =
     "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
@@ -52,9 +56,7 @@ async function geocode(naslov) {
 
   await pocakaj(1100);
 
-  if (!data || data.length === 0) {
-    return null;
-  }
+  if (!data || data.length === 0) return null;
 
   const lokacija = {
     lat: parseFloat(data[0].lat),
@@ -62,8 +64,24 @@ async function geocode(naslov) {
   };
 
   localStorage.setItem(cacheKey, JSON.stringify(lokacija));
-
   return lokacija;
+}
+
+function googleMapsLink(tocke) {
+  const cilj = tocke[tocke.length - 1].naslov;
+  const vmesne = tocke.slice(1, -1).map(t => t.naslov).join("|");
+
+  let url =
+    "https://www.google.com/maps/dir/?api=1" +
+    "&origin=" + encodeURIComponent(START_NASLOV) +
+    "&destination=" + encodeURIComponent(cilj) +
+    "&travelmode=driving";
+
+  if (vmesne) {
+    url += "&waypoints=" + encodeURIComponent(vmesne);
+  }
+
+  return url;
 }
 
 async function optimizirajPot() {
@@ -92,15 +110,15 @@ async function optimizirajPot() {
 
   tocke.push({
     tip: "START",
+    stranka: "START",
     naslov: START_NASLOV,
+    status: "",
     lat: start.lat,
     lon: start.lon
   });
 
   for (const d of moje) {
-    const naslov =
-      (d["Lokacija dostave"] || "") + ", Slovenija";
-
+    const naslov = (d["Lokacija dostave"] || "") + ", Slovenija";
     const geo = await geocode(naslov);
 
     if (geo) {
@@ -125,7 +143,7 @@ async function optimizirajPot() {
   const osrmUrl =
     "https://router.project-osrm.org/trip/v1/driving/" +
     koordinate +
-    "?source=first&roundtrip=true&overview=false";
+    "?source=first&roundtrip=false&overview=false";
 
   const res = await fetch(osrmUrl);
   const data = await res.json();
@@ -142,23 +160,31 @@ async function optimizirajPot() {
     }))
     .sort((a, b) => a.vrstniRed - b.vrstniRed);
 
-  let html = `<div class="delivery"><h2>${voznik}</h2>`;
+  const mapsUrl = googleMapsLink(urejeno);
+
+  let html = `
+    <div class="delivery">
+      <h2>Optimalna pot za ${voznik}</h2>
+      <a class="btn" target="_blank" href="${mapsUrl}">▶ Začni navigacijo</a>
+    </div>
+  `;
 
   urejeno.forEach((t, i) => {
     html += `
-      <div class="mini-delivery">
-        <b>${i + 1}. ${t.tip === "START" ? "START" : t.stranka}</b><br>
-        ${t.naslov}<br>
-        ${t.status ? "Status: " + t.status : ""}
+      <div class="route-card">
+        <div class="route-number">${i + 1}</div>
+        <div class="route-content">
+          <h3>${t.tip === "START" ? "START - Vesca 18" : t.stranka}</h3>
+          <p>📍 ${t.naslov}</p>
+          ${
+            t.status
+            ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
+            : ""
+          }
+        </div>
       </div>
     `;
   });
-
-  html += `
-    <p style="font-size:13px;">
-      Optimizacija: OSRM + OpenStreetMap. Naslovi so geokodirani preko Nominatim.
-    </p>
-  </div>`;
 
   rezultat.innerHTML = html;
 }
