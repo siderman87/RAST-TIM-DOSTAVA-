@@ -57,7 +57,9 @@ async function geocode(naslov) {
   const cacheKey = "geo_" + naslov;
   const cached = localStorage.getItem(cacheKey);
 
-  if (cached) return JSON.parse(cached);
+  if (cached) {
+    return JSON.parse(cached);
+  }
 
   const url =
     "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
@@ -68,7 +70,9 @@ async function geocode(naslov) {
 
   await pocakaj(1100);
 
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) {
+    return null;
+  }
 
   const lokacija = {
     lat: parseFloat(data[0].lat),
@@ -76,6 +80,7 @@ async function geocode(naslov) {
   };
 
   localStorage.setItem(cacheKey, JSON.stringify(lokacija));
+
   return lokacija;
 }
 
@@ -116,6 +121,7 @@ async function izracunajMojoPot() {
   }
 
   let tocke = [];
+  let brezNaslova = [];
 
   const start = await geocode(START_NASLOV);
 
@@ -125,6 +131,7 @@ async function izracunajMojoPot() {
   }
 
   tocke.push({
+    id: "START",
     tip: "START",
     stranka: "START",
     naslov: START_NASLOV,
@@ -133,77 +140,109 @@ async function izracunajMojoPot() {
     lon: start.lon
   });
 
-  let brezNaslova = [];
-
   for (const d of moje) {
     const ime = d["Stranka"] || "Brez stranke";
+    const polniNaslov = najdiPolniNaslov(ime);
 
-    let polniNaslov = najdiPolniNaslov(ime);
+    let moznaIskanja = [];
 
-    if (!polniNaslov) {
-      brezNaslova.push(ime);
+    if (polniNaslov) {
+      moznaIskanja.push(polniNaslov);
+      moznaIskanja.push(polniNaslov + ", Slovenija");
+    }
+
+    moznaIskanja.push(ime + ", Slovenija");
+
+    if (d["Lokacija dostave"]) {
+      moznaIskanja.push(d["Lokacija dostave"] + ", Slovenija");
+    }
+
+    let geo = null;
+    let uporabljenNaslov = "";
+
+    for (const naslov of moznaIskanja) {
+      geo = await geocode(naslov);
+
+      if (geo) {
+        uporabljenNaslov = naslov;
+        break;
+      }
+    }
+
+    if (!geo) {
+      brezNaslova.push(ime + " - ni najdene lokacije");
       continue;
     }
 
-    if (!polniNaslov.toUpperCase().includes("SLOVENIJA")) {
-      polniNaslov = polniNaslov + ", Slovenija";
-    }
-
-    const geo = await geocode(polniNaslov);
-
-    if (geo) {
-      tocke.push({
-        tip: "DOSTAVA",
-        stranka: ime,
-        naslov: polniNaslov,
-        status: d["Status"] || "Pripravljeno",
-        lat: geo.lat,
-        lon: geo.lon
-      });
-    } else {
-      brezNaslova.push(ime + " - naslov ni najden");
-    }
+    tocke.push({
+      id: normaliziraj(ime + "|" + uporabljenNaslov),
+      tip: "DOSTAVA",
+      stranka: ime,
+      naslov: uporabljenNaslov,
+      status: d["Status"] || "Pripravljeno",
+      lat: geo.lat,
+      lon: geo.lon
+    });
   }
 
   if (tocke.length < 2) {
     rezultat.innerHTML = `
       <p>Ni dovolj naslovov za optimizacijo.</p>
-      <p>Manjkajo naslovi za:</p>
       <p>${brezNaslova.join("<br>")}</p>
     `;
     return;
   }
 
-  const koordinate = tocke.map(t => `${t.lon},${t.lat}`).join(";");
+  let urejeno = [];
+  let opozorilo = "";
 
-  const osrmUrl =
-    "https://router.project-osrm.org/trip/v1/driving/" +
-    koordinate +
-    "?source=first&roundtrip=false&overview=false";
+  try {
+    const koordinate = tocke.map(t => `${t.lon},${t.lat}`).join(";");
 
-  const res = await fetch(osrmUrl);
-  const data = await res.json();
+    const osrmUrl =
+      "https://router.project-osrm.org/trip/v1/driving/" +
+      koordinate +
+      "?source=first&roundtrip=false&overview=false";
 
-  if (!data || data.code !== "Ok") {
-    rezultat.innerHTML = "<p>Napaka pri optimizaciji poti.</p>";
-    return;
+    const res = await fetch(osrmUrl);
+    const data = await res.json();
+
+    if (data && data.code === "Ok" && data.waypoints) {
+      urejeno = data.waypoints
+        .map((w, i) => ({
+          ...tocke[i],
+          vrstniRed: w.waypoint_index
+        }))
+        .sort((a, b) => a.vrstniRed - b.vrstniRed);
+
+      const zeNotri = urejeno.map(t => t.id);
+      const manjkajoce = tocke.filter(t => !zeNotri.includes(t.id));
+
+      if (manjkajoce.length > 0) {
+        urejeno = [...urejeno, ...manjkajoce];
+        opozorilo = "Nekatere točke niso bile optimalno razporejene in so dodane na konec.";
+      }
+    } else {
+      urejeno = tocke;
+      opozorilo = "Optimizacija ni uspela, zato je prikazan osnovni vrstni red.";
+    }
+  } catch (e) {
+    urejeno = tocke;
+    opozorilo = "Napaka pri optimizaciji, zato je prikazan osnovni vrstni red.";
   }
-
-  let urejeno = data.waypoints
-    .map((w, i) => ({
-      ...tocke[i],
-      vrstniRed: w.waypoint_index
-    }))
-    .sort((a, b) => a.vrstniRed - b.vrstniRed);
 
   const mapsUrl = googleMapsLink(urejeno);
 
   let html = `
     <div class="delivery">
-      <h2>${user.name} - moja optimalna pot</h2>
+      <h2>${user.name} - moja pot</h2>
       <a class="btn" target="_blank" href="${mapsUrl}">▶ Začni navigacijo</a>
     </div>
   `;
+
+  if (opozorilo) {
+    html += `<div class="stats">⚠️ ${opozorilo}</div>`;
+  }
 
   urejeno.forEach((t, i) => {
     html += `
@@ -214,8 +253,8 @@ async function izracunajMojoPot() {
           <p>📍 ${t.naslov}</p>
           ${
             t.status
-              ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
-              : ""
+            ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
+            : ""
           }
         </div>
       </div>
@@ -225,7 +264,7 @@ async function izracunajMojoPot() {
   if (brezNaslova.length > 0) {
     html += `
       <div class="delivery">
-        <h3>⚠️ Stranke brez najdenega naslova</h3>
+        <h3>⚠️ Stranke brez najdene lokacije</h3>
         <p>${brezNaslova.join("<br>")}</p>
       </div>
     `;
