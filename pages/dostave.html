@@ -69,6 +69,11 @@ function prikaziDostave() {
 
     html += `
       <div class="delivery">
+      
+      <span class="delete-btn"
+onclick="odstraniDostavo(${index})">
+❌
+</span>
         <h3>${stranka}</h3>
 
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
@@ -125,12 +130,19 @@ function resetirajDodelitve() {
 }
 
 prikaziDostave();
-</script>function odstraniDostavo(index) {
-  if (!confirm("Res odstranim to dostavo?")) return;
+</script>
+  function odstraniDostavo(index) {
+
+  if (!confirm("Res izbrišem to dostavo?")) {
+    return;
+  }
 
   dostave.splice(index, 1);
 
-  localStorage.setItem("dostave", JSON.stringify(dostave));
+  localStorage.setItem(
+    "dostave",
+    JSON.stringify(dostave)
+  );
 
   prikaziDostave();
 }
