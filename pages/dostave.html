@@ -41,10 +41,14 @@ dostave.forEach((d, index) => {
 document.getElementById("seznam").innerHTML = html;
 
 function dodeli(index, voznik) {
-  dostave[index].voznik = voznik;
-  dostave[index].Status = "Pripravljeno";
+  dostave[index]["voznik"] = voznik;
+  dostave[index]["Status"] = "Pripravljeno";
+
   localStorage.setItem("dostave", JSON.stringify(dostave));
-  alert("Dostava dodeljena: " + voznik);
+
+  alert("Dodeljeno vozniku: " + voznik);
+  location.reload();
+}
 }
 </script>
 
