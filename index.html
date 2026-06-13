@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAST TIM ERP</title>
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAST TIM ERP</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
-
-<div class="container"></div>
-
+  <div class="container">
     <div class="logo">🥬</div>
-
     <h1>RAST TIM ERP</h1>
+    <p>Vpiši PIN za prijavo</p>
 
-    <p class="subtitle">
-        Dostave, TRIS Excel in šoferji
-    </p>
+    <input id="pin" type="password" placeholder="PIN">
 
-    <a class="btn" href="pages/admin.html">
-        Admin panel
-    </a>
+    <button onclick="login()">Prijava</button>
 
-    <a class="btn" href="pages/uvoz.html">
-        Uvoz TRIS Excel
-    </a>
+    <p id="message"></p>
+  </div>
 
-    <a class="btn" href="pages/voznik.html">
-        Voznik
-    </a>
-
-</div>
-
+  <script src="js/app.js"></script>
 </body>
 </html>
