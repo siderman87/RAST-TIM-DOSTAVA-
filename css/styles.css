@@ -102,3 +102,35 @@ input {
   color: red;
   font-weight: bold;
 }
+
+.route-card {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  background: white;
+  padding: 18px;
+  border-radius: 16px;
+  margin: 15px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+  text-align: left;
+}
+
+.route-number {
+  min-width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.route-content h3 {
+  margin: 0 0 8px 0;
+}
+
+.route-content p {
+  margin: 6px 0;
+}
