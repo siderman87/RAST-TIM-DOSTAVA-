@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digitalna dobavnica</title>
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+<div class="container">
+
+<h1>📄 Digitalna dobavnica</h1>
+
+<div id="dobavnica"></div>
+
+<a class="btn" href="voznik.html">Nazaj</a>
+
+</div>
+
+<script>
+let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+let index = localStorage.getItem("izbranaDobavnica");
+
+if (index === null) {
+  document.getElementById("dobavnica").innerHTML = "<p>Dobavnica ni izbrana.</p>";
+} else {
+  prikaziDobavnico();
+}
+
+function prikaziDobavnico() {
+  const d = dostave[index];
+
+  document.getElementById("dobavnica").innerHTML = `
+    <div class="delivery">
+      <h2>${d["Stranka"] || "Brez stranke"}</h2>
+
+      <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
+      <p><b>Št. dobavnice:</b> ${d["Št. dob."] || "-"}</p>
+      <p><b>Vrednost:</b> ${d["Vrednost"] || "-"}</p>
+      <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+      <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
+    </div>
+
+    <div class="delivery">
+      <h3>✍️ Prevzem</h3>
+
+      <input id="prejemnik" placeholder="Ime prejemnika" value="${d.prejemnik || ""}">
+
+      <canvas id="podpis" width="320" height="180"></canvas>
+
+      <button onclick="pocistiPodpis()">Počisti podpis</button>
+      <button onclick="shraniDobavnico()">Shrani podpis</button>
+      <button onclick="zakljuciDostavo()">✅ Dostavljeno</button>
+    </div>
+  `;
+
+  pripraviPodpis();
+}
+
+let canvas;
+let ctx;
+let risem = false;
+
+function pripraviPodpis() {
+  canvas = document.getElementById("podpis");
+  ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "black";
+
+  canvas.addEventListener("mousedown", zacni);
+  canvas.addEventListener("mouseup", koncaj);
+  canvas.addEventListener("mousemove", risi);
+
+  canvas.addEventListener("touchstart", zacniTouch);
+  canvas.addEventListener("touchend", koncaj);
+  canvas.addEventListener("touchmove", risiTouch);
+}
+
+function zacni(e) {
+  risem = true;
+  ctx.beginPath();
+  ctx.moveTo(e.offsetX, e.offsetY);
+}
+
+function koncaj() {
+  risem = false;
+}
+
+function risi(e) {
+  if (!risem) return;
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+}
+
+function zacniTouch(e) {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+
+  risem = true;
+  ctx.beginPath();
+  ctx.moveTo(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+  );
+}
+
+function risiTouch(e) {
+  e.preventDefault();
+  if (!risem) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+
+  ctx.lineTo(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+  );
+  ctx.stroke();
+}
+
+function pocistiPodpis() {
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function shraniDobavnico() {
+  const prejemnik = document.getElementById("prejemnik").value.trim();
+
+  if (!prejemnik) {
+    alert("Vpiši ime prejemnika.");
+    return;
+  }
+
+  dostave[index].prejemnik = prejemnik;
+  dostave[index].podpis = canvas.toDataURL("image/png");
+  dostave[index].cas_podpisa = new Date().toLocaleString("sl-SI");
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+
+  alert("Podpis je shranjen.");
+}
+
+function zakljuciDostavo() {
+  shraniDobavnico();
+
+  dostave[index].Status = "Dostavljeno";
+  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+
+  alert("Dobavnica je zaključena.");
+  window.location.href = "voznik.html";
+}
+</script>
+
+</body>
+</html>
