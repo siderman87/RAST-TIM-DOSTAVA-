@@ -21,25 +21,4 @@ function login() {
   } else {
     document.getElementById("message").innerText = "Napačen PIN";
   }
-}input, button {
-  width: 260px;
-  padding: 16px;
-  margin: 10px auto;
-  display: block;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  font-size: 18px;
-  text-align: center;
-}
-
-button {
-  background: #2e7d32;
-  color: white;
-  font-weight: bold;
-  border: none;
-}
-
-#message {
-  color: red;
-  font-weight: bold;
 }
