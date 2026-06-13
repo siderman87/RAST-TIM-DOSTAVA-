@@ -17,10 +17,6 @@
 
   <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
 
-  <button onclick="odstraniDostavo(${index})">
-🗑️ Odstrani dostavo
-</button>
-
   <div id="seznam"></div>
 
   <a class="btn" href="admin.html">Nazaj v admin</a>
@@ -69,11 +65,8 @@ function prikaziDostave() {
 
     html += `
       <div class="delivery">
-      
-      <span class="delete-btn"
-onclick="odstraniDostavo(${index})">
-❌
-</span>
+        <span class="delete-btn" onclick="odstraniDostavo(${index})">❌</span>
+
         <h3>${stranka}</h3>
 
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
@@ -91,7 +84,9 @@ onclick="odstraniDostavo(${index})">
             <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
             <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
           `
-          : `<button onclick="spremeniVoznika(${index})">Spremeni voznika</button>`
+          : `
+            <button onclick="spremeniVoznika(${index})">Spremeni voznika</button>
+          `
         }
       </div>
     `;
@@ -119,6 +114,8 @@ function spremeniVoznika(index) {
 }
 
 function resetirajDodelitve() {
+  if (!confirm("Res resetiram vse dodelitve?")) return;
+
   dostave.forEach(d => {
     d.voznik = "";
     d.Status = "Pripravljeno";
@@ -129,23 +126,17 @@ function resetirajDodelitve() {
   prikaziDostave();
 }
 
-prikaziDostave();
-</script>
-  function odstraniDostavo(index) {
-
-  if (!confirm("Res izbrišem to dostavo?")) {
-    return;
-  }
+function odstraniDostavo(index) {
+  if (!confirm("Res izbrišem to dostavo?")) return;
 
   dostave.splice(index, 1);
-
-  localStorage.setItem(
-    "dostave",
-    JSON.stringify(dostave)
-  );
+  localStorage.setItem("dostave", JSON.stringify(dostave));
 
   prikaziDostave();
 }
+
+prikaziDostave();
+</script>
 
 </body>
 </html>
