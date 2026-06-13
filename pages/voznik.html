@@ -21,9 +21,11 @@
   </div>
 
   <script>
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      document.getElementById("imeVoznika").innerText = user.name;
+const user = JSON.parse(localStorage.getItem("user"));
+if (user) {
+  document.getElementById("imeVoznika").innerText = user.name;
+}
+</script>
     }
   </script>
 </body>
