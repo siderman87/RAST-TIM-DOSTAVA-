@@ -1,175 +1,166 @@
-<!DOCTYPE html>
-<html lang="sl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Digitalna dobavnica</title>
-<link rel="stylesheet" href="../css/styles.css">
-</head>
+          </div>
+        </div>
 
-<body>
-<div class="container">
+        <div class="party-grid">
+          <fieldset class="card">
+            <legend>Dobavitelj</legend>
+            <label>
+              Naziv
+              <input id="supplier-name" />
+            </label>
+            <label>
+              Naslov
+              <input id="supplier-address" />
+            </label>
+            <div class="two-columns">
+              <label>
+                Pošta
+                <input id="supplier-post" />
+              </label>
+              <label>
+                ID za DDV
+                <input id="supplier-vat" />
+              </label>
+            </div>
+            <label>
+              TRR
+              <input id="supplier-iban" />
+            </label>
+          </fieldset>
 
-<h1>📄 Digitalna dobavnica</h1>
+          <fieldset class="card">
+            <legend>Prejemnik</legend>
+            <label>
+              Naziv
+              <input id="customer-name" />
+            </label>
+            <label>
+              Naslov
+              <input id="customer-address" />
+            </label>
+            <label>
+              Pošta
+              <input id="customer-post" />
+            </label>
+          </fieldset>
+        </div>
 
-<div id="dobavnica"></div>
+        <div class="meta-grid card">
+          <label>
+            Kraj
+            <input id="place" />
+          </label>
+          <label>
+            Datum
+            <input id="issue-date" type="date" />
+          </label>
+          <label>
+            Datum odpreme
+            <input id="dispatch-date" type="date" />
+          </label>
+          <label>
+            Fakturiral/a
+            <input id="issued-by" />
+          </label>
+          <label class="wide-field">
+            Blago dobavlja
+            <input id="warehouse" />
+          </label>
+        </div>
 
-<a class="btn" href="voznik.html">Nazaj</a>
+        <div class="table-toolbar">
+          <h3>Postavke</h3>
+          <button class="button button-secondary" id="add-item" type="button">
+            + Dodaj postavko
+          </button>
+        </div>
 
-</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">EAN / šifra</th>
+                <th scope="col">Naziv</th>
+                <th scope="col">Količina</th>
+                <th scope="col">Cena brez DDV</th>
+                <th scope="col">DDV %</th>
+                <th scope="col">Vrednost</th>
+                <th class="actions-column" scope="col">Dejanje</th>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
+        </div>
 
-<script>
-let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
-let index = localStorage.getItem("izbranaDobavnica");
+        <div class="bottom-grid">
+          <div class="notes card">
+            <label>
+              Namen / dogodek
+              <input id="event" />
+            </label>
+            <label>
+              Embalaža / gajbice
+              <input id="crates" />
+            </label>
+            <label>
+              Opomba
+              <textarea id="note" rows="3"></textarea>
+            </label>
+          </div>
 
-if (index === null) {
-  document.getElementById("dobavnica").innerHTML = "<p>Dobavnica ni izbrana.</p>";
-} else {
-  prikaziDobavnico();
-}
+          <section class="totals card" aria-label="Seštevek dobavnice">
+            <div>
+              <span>Skupaj brez DDV</span>
+              <strong id="subtotal">0,00 €</strong>
+            </div>
+            <div>
+              <span>DDV</span>
+              <strong id="vat-total">0,00 €</strong>
+            </div>
+            <div class="grand-total">
+              <span>Skupaj za plačilo</span>
+              <strong id="grand-total">0,00 €</strong>
+            </div>
+          </section>
+        </div>
 
-function prikaziDobavnico() {
-  const d = dostave[index];
+        <div class="signatures">
+          <p>Izdal/a: <span></span></p>
+          <p>Prejel/a: <span></span></p>
+        </div>
 
-  document.getElementById("dobavnica").innerHTML = `
-    <div class="delivery">
-      <h2>${d["Stranka"] || "Brez stranke"}</h2>
+        <footer class="document-footer">
+          <span id="footer-company"></span>
+          <span>info@e-branjevka.si</span>
+          <span>www.e-branjevka.si</span>
+        </footer>
+      </section>
+    </main>
 
-      <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
-      <p><b>Št. dobavnice:</b> ${d["Št. dob."] || "-"}</p>
-      <p><b>Vrednost:</b> ${d["Vrednost"] || "-"}</p>
-      <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
-      <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
-    </div>
+    <template id="item-row-template">
+      <tr>
+        <td class="row-number"></td>
+        <td><input class="item-code" aria-label="EAN ali šifra" /></td>
+        <td><input class="item-name" aria-label="Naziv postavke" /></td>
+        <td>
+          <input class="item-quantity number-input" type="number" min="0" step="0.01" />
+        </td>
+        <td>
+          <input class="item-price number-input" type="number" min="0" step="0.01" />
+        </td>
+        <td>
+          <input class="item-vat number-input" type="number" min="0" step="0.01" />
+        </td>
+        <td class="item-total money">0,00 €</td>
+        <td class="actions-column">
+          <button class="icon-button remove-item" type="button" aria-label="Odstrani postavko">
+            Odstrani
+          </button>
+        </td>
+      </tr>
+    </template>
 
-    <div class="delivery">
-      <h3>✍️ Prevzem</h3>
-
-      <input id="prejemnik" placeholder="Ime prejemnika" value="${d.prejemnik || ""}">
-
-      <canvas id="podpis" width="320" height="180"></canvas>
-
-      <button type="button" onclick="pocistiPodpis()">Počisti podpis</button>
-<button type="button" onclick="shraniDobavnico()">Shrani podpis</button>
-<button type="button" onclick="zakljuciDostavo()">✅ Dostavljeno</button>
-    </div>
-  `;
-
-  pripraviPodpis();
-}
-
-let canvas;
-let ctx;
-let risem = false;
-
-function pripraviPodpis() {
-  canvas = document.getElementById("podpis");
-  ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.lineWidth = 3;
-  ctx.lineCap = "round";
-  ctx.strokeStyle = "black";
-
-  canvas.addEventListener("mousedown", zacni);
-  canvas.addEventListener("mouseup", koncaj);
-  canvas.addEventListener("mousemove", risi);
-
-  canvas.addEventListener("touchstart", zacniTouch);
-  canvas.addEventListener("touchend", koncaj);
-  canvas.addEventListener("touchmove", risiTouch);
-}
-
-function zacni(e) {
-  risem = true;
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-}
-
-function koncaj() {
-  risem = false;
-}
-
-function risi(e) {
-  if (!risem) return;
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-}
-
-function zacniTouch(e) {
-  e.preventDefault();
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-
-  risem = true;
-  ctx.beginPath();
-  ctx.moveTo(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-  );
-}
-
-function risiTouch(e) {
-  e.preventDefault();
-  if (!risem) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-
-  ctx.lineTo(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-  );
-  ctx.stroke();
-}
-
-function pocistiPodpis() {
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function shraniDobavnico() {
-  const prejemnikInput = document.getElementById("prejemnik");
-  const podpisCanvas = document.getElementById("podpis");
-
-  if (!prejemnikInput || !podpisCanvas) {
-    alert("Napaka: polje za podpis ni pripravljeno.");
-    return false;
-  }
-
-  const prejemnik = prejemnikInput.value.trim();
-
-  if (!prejemnik) {
-    alert("Vpiši ime prejemnika.");
-    return false;
-  }
-
-  dostave[index].prejemnik = prejemnik;
-  dostave[index].podpis = podpisCanvas.toDataURL("image/png");
-  dostave[index].cas_podpisa = new Date().toLocaleString("sl-SI");
-
-  localStorage.setItem("dostave", JSON.stringify(dostave));
-
-  alert("Podpis je shranjen.");
-  return true;
-}
-
-function zakljuciDostavo() {
-  const ok = shraniDobavnico();
-
-  if (!ok) return;
-
-  dostave[index].Status = "Dostavljeno";
-  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
-
-  localStorage.setItem("dostave", JSON.stringify(dostave));
-
-  alert("Dobavnica je zaključena.");
-  window.location.href = "voznik.html";
-
-}
-</script>
-
-</body>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </body>
 </html>
