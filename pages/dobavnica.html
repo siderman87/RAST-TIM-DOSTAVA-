@@ -49,9 +49,9 @@ function prikaziDobavnico() {
 
       <canvas id="podpis" width="320" height="180"></canvas>
 
-      <button onclick="pocistiPodpis()">Počisti podpis</button>
-      <button onclick="shraniDobavnico()">Shrani podpis</button>
-      <button onclick="zakljuciDostavo()">✅ Dostavljeno</button>
+      <button type="button" onclick="pocistiPodpis()">Počisti podpis</button>
+<button type="button" onclick="shraniDobavnico()">Shrani podpis</button>
+<button type="button" onclick="zakljuciDostavo()">✅ Dostavljeno</button>
     </div>
   `;
 
@@ -130,24 +130,35 @@ function pocistiPodpis() {
 }
 
 function shraniDobavnico() {
-  const prejemnik = document.getElementById("prejemnik").value.trim();
+  const prejemnikInput = document.getElementById("prejemnik");
+  const podpisCanvas = document.getElementById("podpis");
+
+  if (!prejemnikInput || !podpisCanvas) {
+    alert("Napaka: polje za podpis ni pripravljeno.");
+    return false;
+  }
+
+  const prejemnik = prejemnikInput.value.trim();
 
   if (!prejemnik) {
     alert("Vpiši ime prejemnika.");
-    return;
+    return false;
   }
 
   dostave[index].prejemnik = prejemnik;
-  dostave[index].podpis = canvas.toDataURL("image/png");
+  dostave[index].podpis = podpisCanvas.toDataURL("image/png");
   dostave[index].cas_podpisa = new Date().toLocaleString("sl-SI");
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
 
   alert("Podpis je shranjen.");
+  return true;
 }
 
 function zakljuciDostavo() {
-  shraniDobavnico();
+  const ok = shraniDobavnico();
+
+  if (!ok) return;
 
   dostave[index].Status = "Dostavljeno";
   dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
@@ -156,6 +167,7 @@ function zakljuciDostavo() {
 
   alert("Dobavnica je zaključena.");
   window.location.href = "voznik.html";
+
 }
 </script>
 
