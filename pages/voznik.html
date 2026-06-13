@@ -1,46 +1,70 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-  <meta charset="UTF-8">
-  <title>Voznik</title>
-  <link rel="stylesheet" href="../css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voznik</title>
+<link rel="stylesheet" href="../css/styles.css">
 </head>
+
 <body>
-  <div class="container">
-    <h1 id="imeVoznika">Voznik</h1>
-    <p>Tukaj bodo tvoje dostave.</p>
-<div class="delivery">
-    <h3>Dobavnica #1025</h3>
+<div class="container">
+  <h1 id="imeVoznika">Voznik</h1>
+  <p>Moje dostave</p>
 
-    <p><b>Kupec:</b> Gostilna Pri Mostu</p>
+  <div id="mojeDostave"></div>
 
-    <p><b>Naslov:</b> Ljubljana</p>
-
-    <p><b>Status:</b> <span id="status">Pripravljeno</span></p>
-<button onclick="dostavljeno()">Dostavljeno</button>
+  <a class="btn" href="../index.html">Odjava</a>
 </div>
-    <div class="delivery">
-      <strong>Test dostava</strong><br>
-      Kupec: Gostilna Test<br>
-      Naslov: Ljubljana<br>
-      Status: Pripravljeno
-    </div>
 
-    <a class="btn" href="../index.html">Odjava</a>
-  </div>
-
-  <script>
+<script>
 const user = JSON.parse(localStorage.getItem("user"));
+const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+
 if (user) {
   document.getElementById("imeVoznika").innerText = user.name;
 }
-</script>
-  <script>
-function dostavljeno() {
-  document.getElementById("status").innerText = "Dostavljeno";
+
+const moje = dostave.filter(d => d.voznik === user.name);
+
+let html = "";
+
+if (moje.length === 0) {
+  html = "<p>Trenutno nimaš dodeljenih dostav.</p>";
+} else {
+  moje.forEach((d, index) => {
+    html += `
+      <div class="delivery">
+        <h3>${d["Stranka"] || "Brez stranke"}</h3>
+        <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
+        <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
+        <p><b>Status:</b> <span id="status${index}">${d["Status"] || "Pripravljeno"}</span></p>
+
+        <button onclick="spremeniStatus(${index}, 'Na poti')">Na poti</button>
+        <button onclick="spremeniStatus(${index}, 'Dostavljeno')">Dostavljeno</button>
+      </div>
+    `;
+  });
+}
+
+document.getElementById("mojeDostave").innerHTML = html;
+
+function spremeniStatus(index, status) {
+  moje[index].Status = status;
+
+  const originalIndex = dostave.findIndex(d =>
+    d["Stranka"] === moje[index]["Stranka"] &&
+    d["Lokacija dostave"] === moje[index]["Lokacija dostave"]
+  );
+
+  if (originalIndex !== -1) {
+    dostave[originalIndex].Status = status;
+    localStorage.setItem("dostave", JSON.stringify(dostave));
+  }
+
+  document.getElementById("status" + index).innerText = status;
 }
 </script>
-    }
-  </script>
+
 </body>
 </html>
