@@ -10,7 +10,11 @@
 <body>
 <div class="container">
   <h1>🚚 Razporejanje dostav</h1>
+
+  <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
+
   <div id="seznam"></div>
+
   <a class="btn" href="admin.html">Nazaj v admin</a>
 </div>
 
@@ -20,26 +24,37 @@ let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 function prikaziDostave() {
   const seznam = document.getElementById("seznam");
 
+  if (dostave.length === 0) {
+    seznam.innerHTML = "<p>Ni uvoženih dostav. Najprej uvozi Excel.</p>";
+    return;
+  }
+
   let html = "";
 
   dostave.forEach((d, index) => {
-    let voznik = String(d.voznik || "").trim();
+    const voznik = String(d.voznik || "").trim();
 
     html += `
       <div class="delivery">
         <h3>${d["Stranka"] || "Brez stranke"}</h3>
+
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
         <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
         <p><b>Voznik:</b> ${voznik || "Ni dodeljen"}</p>
-        <p><b>Čas spremembe:</b> ${d["cas_spremembe"] || "-"}</p>
+        <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
 
+        ${
+          voznik === ""
+          ? `
             <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
             <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
             <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
             <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
             <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
-            <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
+          `
+          : `
+            <button onclick="spremeniVoznika(${index})">Spremeni voznika</button>
           `
         }
       </div>
@@ -55,20 +70,21 @@ function dodeli(index, voznik) {
   dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
+
   prikaziDostave();
 }
 
 function spremeniVoznika(index) {
   dostave[index].voznik = "";
   dostave[index].Status = "Pripravljeno";
-  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
+  dostave[index].cas_spremembe = "";
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
+
   prikaziDostave();
 }
 
-prikaziDostave();
-</script>function resetirajDodelitve() {
+function resetirajDodelitve() {
   dostave.forEach(d => {
     d.voznik = "";
     d.Status = "Pripravljeno";
@@ -76,9 +92,12 @@ prikaziDostave();
   });
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
+
   prikaziDostave();
 }
-  
+
+prikaziDostave();
+</script>
 
 </body>
 </html>
