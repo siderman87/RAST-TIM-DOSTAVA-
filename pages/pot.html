@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pot dostave</title>
+<link rel="stylesheet" href="../css/styles.css">
+</head>
 
+<body>
+<div class="container">
+  <h1>🗺️ Pot dostave</h1>
+  <p><b>Start:</b> Vesca 18, 1217 Vodice</p>
+
+  <div id="poti"></div>
+
+  <a class="btn" href="admin.html">Nazaj v admin</a>
+</div>
+
+<script>
+const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+const vozniki = ["ROK", "ANŽE", "BLAŽ", "AJDIN", "MATEVŽ"];
+
+const vrstniRedKrajev = [
+  "VODICE",
+  "MENGEŠ",
+  "DOMŽALE",
+  "TRZIN",
+  "LJUBLJANA",
+  "MEDVODE",
+  "ŠKOFJA LOKA",
+  "KRANJ",
+  "KAMNIK",
+  "CELJE",
+  "MARIBOR"
+];
+
+function rangLokacije(lokacija) {
+  const tekst = String(lokacija || "").toUpperCase();
+
+  for (let i = 0; i < vrstniRedKrajev.length; i++) {
+    if (tekst.includes(vrstniRedKrajev[i])) {
+      return i;
+    }
+  }
+
+  return 999;
+}
+
+let html = "";
+
+vozniki.forEach(voznik => {
+  let njegove = dostave.filter(d => d.voznik === voznik);
+
+  njegove.sort((a, b) => {
+    return rangLokacije(a["Lokacija dostave"]) - rangLokacije(b["Lokacija dostave"]);
+  });
+
+  html += `
+    <div class="delivery">
+      <h2>${voznik}</h2>
+  `;
+
+  if (njegove.length === 0) {
+    html += `<p>Ni dodeljenih dostav.</p>`;
+  } else {
+    njegove.forEach((d, index) => {
+      html += `
+        <div class="mini-delivery">
+          <b>${index + 1}. ${d["Stranka"] || "Brez stranke"}</b><br>
+          ${d["Lokacija dostave"] || ""}<br>
+          Status: ${d["Status"] || "Pripravljeno"}
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+});
+
+document.getElementById("poti").innerHTML = html;
+</script>
+
+</body>
+</html>
