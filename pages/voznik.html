@@ -12,11 +12,9 @@
   <h1 id="imeVoznika">Voznik</h1>
   <p>Moje dostave</p>
 
-  <div id="mojeDostave"></div>
+  <a class="btn" href="pot-voznik.html">🗺️ Moja pot</a>
 
-  <a class="btn" href="pot-voznik.html">
-🗺️ Moja pot
-</a>
+  <div id="mojeDostave"></div>
 
   <a class="btn" href="../index.html">Odjava</a>
 </div>
@@ -25,31 +23,52 @@
 const user = JSON.parse(localStorage.getItem("user"));
 let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
-if (user) {
+if (!user) {
+  document.getElementById("imeVoznika").innerText = "Nisi prijavljen";
+} else {
   document.getElementById("imeVoznika").innerText = user.name;
 }
 
-function prikaziMojeDostave() {
-  const mojeDostave = document.getElementById("mojeDostave");
+function statusClass(status) {
+  if (status === "Dostavljeno") return "status-dostavljeno";
+  if (status === "Na poti") return "status-napoti";
+  return "status-pripravljeno";
+}
 
-  const moje = dostave
+function prikaziMojeDostave() {
+  const box = document.getElementById("mojeDostave");
+
+  if (!user) {
+    box.innerHTML = "<p>Najprej se prijavi.</p>";
+    return;
+  }
+
+  let moje = dostave
     .map((d, index) => ({ ...d, originalIndex: index }))
-    .filter(d => String(d.voznik).toUpperCase() === String(user.name).toUpperCase());
+    .filter(d =>
+      String(d.voznik || "").toUpperCase().trim() ===
+      String(user.name || "").toUpperCase().trim()
+    );
 
   if (moje.length === 0) {
-    mojeDostave.innerHTML = "<p>Trenutno nimaš dodeljenih dostav.</p>";
+    box.innerHTML = "<p>Trenutno nimaš dodeljenih dostav.</p>";
     return;
   }
 
   let html = "";
 
   moje.forEach(d => {
+    const status = d["Status"] || "Pripravljeno";
+
     html += `
       <div class="delivery">
         <h3>${d["Stranka"] || "Brez stranke"}</h3>
+
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
-        <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+        <p><b>Status:</b> <span class="${statusClass(status)}">${status}</span></p>
+        <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
+        <p><b>Prejemnik:</b> ${d["prejemnik"] || "-"}</p>
 
         <button onclick="spremeniStatus(${d.originalIndex}, 'Na poti')">Na poti</button>
         <button onclick="spremeniStatus(${d.originalIndex}, 'Dostavljeno')">Dostavljeno</button>
@@ -58,7 +77,7 @@ function prikaziMojeDostave() {
     `;
   });
 
-  mojeDostave.innerHTML = html;
+  box.innerHTML = html;
 }
 
 function spremeniStatus(index, status) {
@@ -67,20 +86,16 @@ function spremeniStatus(index, status) {
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
 
-  alert("Status spremenjen v: " + status);
-
   prikaziMojeDostave();
-  
-  function odpriDobavnico(index) {
+}
+
+function odpriDobavnico(index) {
   localStorage.setItem("izbranaDobavnica", index);
   window.location.href = "dobavnica.html";
 }
 
-
 prikaziMojeDostave();
-  
 </script>
-  
-  
+
 </body>
 </html>
