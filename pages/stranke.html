@@ -1,1 +1,210 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stranke</title>
 
+<link rel="stylesheet" href="../css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>👥 Stranke in naslovi</h1>
+
+<div class="delivery">
+
+<h2>Ročni vnos stranke</h2>
+
+<input id="imeStranke" placeholder="Ime stranke">
+<input id="naslovStranke" placeholder="Polni naslov, npr. Celjska cesta 10, 1230 Domžale">
+
+<button onclick="dodajStranko()">Dodaj stranko</button>
+
+</div>
+
+<div class="delivery">
+
+<h2>Uvoz Excel baze strank</h2>
+
+<p>Excel naj ima stolpca: <b>Stranka</b> in <b>Polni naslov</b></p>
+
+<input type="file" id="excelStranke" accept=".xlsx,.xls,.csv">
+
+<button onclick="uvoziStranke()">Uvozi stranke</button>
+
+</div>
+
+<div id="info"></div>
+
+<h2>Seznam strank</h2>
+
+<input id="iskanjeStranke" placeholder="Išči stranko..." oninput="prikaziStranke()">
+
+<div id="seznamStrank"></div>
+
+<a class="btn" href="admin.html">Nazaj v admin</a>
+
+</div>
+
+<script>
+
+let stranke = JSON.parse(localStorage.getItem("stranke")) || [];
+
+function normaliziraj(text) {
+  return String(text || "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function shraniStranke() {
+  localStorage.setItem("stranke", JSON.stringify(stranke));
+}
+
+function dodajStranko() {
+  const ime = document.getElementById("imeStranke").value.trim();
+  const naslov = document.getElementById("naslovStranke").value.trim();
+
+  if (!ime || !naslov) {
+    alert("Vpiši ime stranke in polni naslov.");
+    return;
+  }
+
+  const obstaja = stranke.find(s =>
+    normaliziraj(s.Stranka) === normaliziraj(ime)
+  );
+
+  if (obstaja) {
+    obstaja["Polni naslov"] = naslov;
+  } else {
+    stranke.push({
+      Stranka: ime,
+      "Polni naslov": naslov
+    });
+  }
+
+  shraniStranke();
+
+  document.getElementById("imeStranke").value = "";
+  document.getElementById("naslovStranke").value = "";
+
+  prikaziStranke();
+}
+
+function uvoziStranke() {
+  const file = document.getElementById("excelStranke").files[0];
+
+  if (!file) {
+    alert("Najprej izberi Excel datoteko.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const uvoz = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+    let dodane = 0;
+    let posodobljene = 0;
+    let preskocene = 0;
+
+    uvoz.forEach(vrstica => {
+      const ime =
+        vrstica["Stranka"] ||
+        vrstica["Ime stranke"] ||
+        vrstica["Naziv"] ||
+        "";
+
+      const naslov =
+        vrstica["Polni naslov"] ||
+        vrstica["Naslov"] ||
+        "";
+
+      if (!ime || !naslov) {
+        preskocene++;
+        return;
+      }
+
+      const obstaja = stranke.find(s =>
+        normaliziraj(s.Stranka) === normaliziraj(ime)
+      );
+
+      if (obstaja) {
+        obstaja["Polni naslov"] = naslov;
+        posodobljene++;
+      } else {
+        stranke.push({
+          Stranka: ime,
+          "Polni naslov": naslov
+        });
+        dodane++;
+      }
+    });
+
+    shraniStranke();
+
+    document.getElementById("info").innerHTML =
+      `<div class="stats">
+        Dodane: ${dodane}<br>
+        Posodobljene: ${posodobljene}<br>
+        Preskočene: ${preskocene}<br>
+        Skupaj strank: ${stranke.length}
+      </div>`;
+
+    prikaziStranke();
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function izbrisiStranko(index) {
+  if (!confirm("Res izbrišem stranko?")) return;
+
+  stranke.splice(index, 1);
+  shraniStranke();
+  prikaziStranke();
+}
+
+function prikaziStranke() {
+  const iskanje = normaliziraj(
+    document.getElementById("iskanjeStranke")?.value || ""
+  );
+
+  let html = "";
+
+  stranke.forEach((s, index) => {
+    if (
+      iskanje &&
+      !normaliziraj(s.Stranka).includes(iskanje) &&
+      !normaliziraj(s["Polni naslov"]).includes(iskanje)
+    ) {
+      return;
+    }
+
+    html += `
+      <div class="delivery">
+        <h3>${s.Stranka}</h3>
+        <p><b>Polni naslov:</b> ${s["Polni naslov"]}</p>
+        <button onclick="izbrisiStranko(${index})">Izbriši</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("seznamStrank").innerHTML =
+    html || "<p>Ni strank.</p>";
+}
+
+prikaziStranke();
+
+</script>
+
+</body>
+</html>
