@@ -17,7 +17,7 @@
 </div>
 
 <script>
-const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
 let html = "";
 
@@ -28,6 +28,7 @@ dostave.forEach((d, index) => {
       <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
       <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
       <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+      <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
 
       <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
       <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
@@ -46,9 +47,9 @@ function dodeli(index, voznik) {
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
 
-  alert("Dodeljeno vozniku: " + voznik);
-  location.reload();
-}
+  alert("Dostava dodeljena: " + voznik);
+
+  window.location.reload();
 }
 </script>
 
