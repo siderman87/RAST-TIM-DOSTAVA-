@@ -4,26 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uvoz TRIS Excel</title>
+
 <link rel="stylesheet" href="../css/styles.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
+
 <div class="container">
-  <h1>📦 Uvoz TRIS Excel</h1>
 
-  <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
+<h1>📦 Uvoz TRIS Excel</h1>
 
-  <button onclick="preberiExcel()">Naloži Excel</button>
+<input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
 
-  <p id="info"></p>
+<button onclick="preberiExcel()">Naloži Excel</button>
 
-  <a class="btn" href="dostave.html">Poglej dostave</a>
-  <a class="btn" href="admin.html">Nazaj v admin</a>
+<p id="info"></p>
+
+<a class="btn" href="dostave.html">Poglej dostave</a>
+<a class="btn" href="admin.html">Nazaj v admin</a>
+
 </div>
 
 <script>
+
 function preberiExcel() {
+
   const file = document.getElementById("excelFile").files[0];
 
   if (!file) {
@@ -34,13 +40,14 @@ function preberiExcel() {
   const reader = new FileReader();
 
   reader.onload = function(e) {
+
     const data = new Uint8Array(e.target.result);
     const workbook = XLSX.read(data, { type: "array" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    let json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    let noveDostave = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    json = json.map(d => {
+    noveDostave = noveDostave.map(d => {
       return {
         ...d,
         voznik: "",
@@ -51,18 +58,24 @@ function preberiExcel() {
 
     let stareDostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
-let zdruzeneDostave = [...stareDostave, ...json];
+    let vseDostave = [
+      ...stareDostave,
+      ...noveDostave
+    ];
 
-localStorage.setItem("dostave", JSON.stringify(zdruzeneDostave));
+    localStorage.setItem("dostave", JSON.stringify(vseDostave));
 
     document.getElementById("info").innerText =
-      "Uvoženih dostav: " + json.length;
+      "Dodane nove dostave: " + noveDostave.length +
+      " | Skupaj dostav: " + vseDostave.length;
 
-    alert("Excel je uvožen. Zdaj klikni Poglej dostave.");
+    alert("Excel je uvožen. Stare dostave so ostale shranjene.");
+
   };
 
   reader.readAsArrayBuffer(file);
 }
+
 </script>
 
 </body>
