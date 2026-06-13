@@ -54,4 +54,20 @@ button {
   border-radius: 12px;
   margin: 15px 0;
   text-align: left;
+}.delivery{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 0 10px rgba(0,0,0,.1);
+    margin-top:20px;
+}
+
+button{
+    width:100%;
+    background:#2e7d32;
+    color:white;
+    border:none;
+    padding:15px;
+    border-radius:10px;
+    font-size:16px;
 }
