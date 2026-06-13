@@ -1,1 +1,193 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moja pot</title>
+<link rel="stylesheet" href="../css/styles.css">
+</head>
 
+<body>
+<div class="container">
+  <h1>🗺️ Moja pot</h1>
+  <p><b>Start:</b> Vesca 18, 1217 Vodice</p>
+
+  <div id="rezultat"></div>
+
+  <a class="btn" href="voznik.html">Nazaj</a>
+</div>
+
+<script>
+const START_NASLOV = "Vesca 18, 1217 Vodice, Slovenija";
+const user = JSON.parse(localStorage.getItem("user"));
+const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+
+function statusClass(status) {
+  if (status === "Dostavljeno") return "status-dostavljeno";
+  if (status === "Na poti") return "status-napoti";
+  return "status-pripravljeno";
+}
+
+function pocakaj(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function geocode(naslov) {
+  const cacheKey = "geo_" + naslov;
+  const cached = localStorage.getItem(cacheKey);
+
+  if (cached) return JSON.parse(cached);
+
+  const url =
+    "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+    encodeURIComponent(naslov);
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  await pocakaj(1100);
+
+  if (!data || data.length === 0) return null;
+
+  const lokacija = {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon)
+  };
+
+  localStorage.setItem(cacheKey, JSON.stringify(lokacija));
+  return lokacija;
+}
+
+function googleMapsLink(tocke) {
+  const cilj = tocke[tocke.length - 1].naslov;
+  const vmesne = tocke.slice(1, -1).map(t => t.naslov).join("|");
+
+  let url =
+    "https://www.google.com/maps/dir/?api=1" +
+    "&origin=" + encodeURIComponent(START_NASLOV) +
+    "&destination=" + encodeURIComponent(cilj) +
+    "&travelmode=driving";
+
+  if (vmesne) {
+    url += "&waypoints=" + encodeURIComponent(vmesne);
+  }
+
+  return url;
+}
+
+async function izracunajMojoPot() {
+  const rezultat = document.getElementById("rezultat");
+
+  if (!user) {
+    rezultat.innerHTML = "<p>Nisi prijavljen.</p>";
+    return;
+  }
+
+  rezultat.innerHTML = "<p>Računam tvojo pot...</p>";
+
+  let moje = dostave.filter(d =>
+    String(d.voznik || "").toUpperCase() === String(user.name || "").toUpperCase()
+  );
+
+  moje = moje.filter(d => d.Status !== "Dostavljeno");
+
+  if (moje.length === 0) {
+    rezultat.innerHTML = "<p>Nimaš odprtih dostav.</p>";
+    return;
+  }
+
+  let tocke = [];
+
+  const start = await geocode(START_NASLOV);
+
+  if (!start) {
+    rezultat.innerHTML = "<p>Ne najdem startnega naslova.</p>";
+    return;
+  }
+
+  tocke.push({
+    tip: "START",
+    stranka: "START",
+    naslov: START_NASLOV,
+    status: "",
+    lat: start.lat,
+    lon: start.lon
+  });
+
+  for (const d of moje) {
+    const naslov = (d["Lokacija dostave"] || "") + ", Slovenija";
+    const geo = await geocode(naslov);
+
+    if (geo) {
+      tocke.push({
+        tip: "DOSTAVA",
+        stranka: d["Stranka"] || "Brez stranke",
+        naslov: d["Lokacija dostave"] || "",
+        status: d["Status"] || "Pripravljeno",
+        lat: geo.lat,
+        lon: geo.lon
+      });
+    }
+  }
+
+  if (tocke.length < 2) {
+    rezultat.innerHTML = "<p>Ni dovolj naslovov za pot.</p>";
+    return;
+  }
+
+  const koordinate = tocke.map(t => `${t.lon},${t.lat}`).join(";");
+
+  const osrmUrl =
+    "https://router.project-osrm.org/trip/v1/driving/" +
+    koordinate +
+    "?source=first&roundtrip=false&overview=false";
+
+  const res = await fetch(osrmUrl);
+  const data = await res.json();
+
+  if (!data || data.code !== "Ok") {
+    rezultat.innerHTML = "<p>Napaka pri optimizaciji poti.</p>";
+    return;
+  }
+
+  let urejeno = data.waypoints
+    .map((w, i) => ({
+      ...tocke[i],
+      vrstniRed: w.waypoint_index
+    }))
+    .sort((a, b) => a.vrstniRed - b.vrstniRed);
+
+  const mapsUrl = googleMapsLink(urejeno);
+
+  let html = `
+    <div class="delivery">
+      <h2>${user.name} - moja optimalna pot</h2>
+      <a class="btn" target="_blank" href="${mapsUrl}">▶ Začni navigacijo</a>
+    </div>
+  `;
+
+  urejeno.forEach((t, i) => {
+    html += `
+      <div class="route-card">
+        <div class="route-number">${i + 1}</div>
+        <div class="route-content">
+          <h3>${t.tip === "START" ? "START - Vesca 18" : t.stranka}</h3>
+          <p>📍 ${t.naslov}</p>
+          ${
+            t.status
+            ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
+            : ""
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  rezultat.innerHTML = html;
+}
+
+izracunajMojoPot();
+</script>
+
+</body>
+</html>
