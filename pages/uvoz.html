@@ -1,87 +1,79 @@
 <!DOCTYPE html>
 <html lang="sl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uvoz TRIS Excel</title>
-
-    <link rel="stylesheet" href="../css/styles.css">
-
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uvoz TRIS Excel</title>
+<link rel="stylesheet" href="../css/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
-
 <div class="container">
+  <h1>📦 Uvoz TRIS Excel</h1>
 
-<h1>📦 Uvoz TRIS Excel</h1>
+  <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
 
-<input type="file" id="excelFile">
+  <button onclick="preberiExcel()">Naloži Excel</button>
 
-<br><br>
+  <p id="info"></p>
 
-<button onclick="preberiExcel()">Naloži Excel</button>
+  <div id="rezultat"></div>
 
-<div id="rezultat"></div>
-
+  <a class="btn" href="dostave.html">Poglej dostave</a>
+  <a class="btn" href="admin.html">Nazaj v admin</a>
 </div>
 
 <script>
+function preberiExcel() {
+  const file = document.getElementById("excelFile").files[0];
 
-function preberiExcel(){
+  if (!file) {
+    alert("Najprej izberi Excel datoteko.");
+    return;
+  }
 
-    localStorage.setItem("dostave", JSON.stringify(json));
-document.getElementById("rezultat").innerHTML = html;
+  const reader = new FileReader();
 
-alert("Excel je uspešno uvožen in shranjen.");
-    if(!file){
-        alert("Izberi Excel datoteko.");
-        return;
-    }
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
 
-    const reader = new FileReader();
+      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-    reader.onload = function(e){
+      localStorage.setItem("dostave", JSON.stringify(json));
 
-        const data = new Uint8Array(e.target.result);
+      document.getElementById("info").innerText =
+        "Uvoženih vrstic: " + json.length;
 
-        const workbook = XLSX.read(data,{type:'array'});
+      let html = "";
 
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-        const json = XLSX.utils.sheet_to_json(sheet);
-
-        let html = "";
-
-        json.forEach(vrstica=>{
-
-            html += `
-            <div class="delivery">
-
-            <h3>${vrstica["Stranka"] ?? ""}</h3>
-
-            <p><b>Lokacija:</b> ${vrstica["Lokacija dostave"] ?? ""}</p>
-
-            <p><b>Vrednost:</b> ${vrstica["Vrednost"] ?? ""}</p>
-
+      json.forEach(vrstica => {
+        html += `
+          <div class="delivery">
+            <h3>${vrstica["Stranka"] || "Brez stranke"}</h3>
+            <p><b>Lokacija:</b> ${vrstica["Lokacija dostave"] || ""}</p>
+            <p><b>Vrednost:</b> ${vrstica["Vrednost"] || ""}</p>
             <p><b>Status:</b> Pripravljeno</p>
+          </div>
+        `;
+      });
 
-            </div>
-            `;
+      document.getElementById("rezultat").innerHTML = html;
 
-        });
-
-        document.getElementById("rezultat").innerHTML = html;
-
+      alert("Excel je uspešno uvožen.");
+    } catch (err) {
+      alert("Napaka pri uvozu Excela.");
+      console.error(err);
     }
+  };
 
-    reader.readAsArrayBuffer(file);
-
+  reader.readAsArrayBuffer(file);
 }
-
 </script>
 
 </body>
-</html></div>
-<a class="btn" href="dostave.html">Poglej dostave</a>
-<a class="btn" href="admin.html">Nazaj v admin</a>
+</html>
