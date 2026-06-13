@@ -39,6 +39,8 @@ function prikaziDostave() {
         <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
 <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
 <p><b>Čas spremembe:</b> ${d["cas_spremembe"] || "-"}</p>
+  <p><b>Dodeljeno:</b> ${d["voznik"]}</p>
+  <button onclick="odstraniVoznika(${index})">Spremeni voznika</button>
 
         <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
         <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
