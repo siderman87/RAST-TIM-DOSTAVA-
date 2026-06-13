@@ -3,82 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pot dostave</title>
+<title>Optimalna pot</title>
 <link rel="stylesheet" href="../css/styles.css">
 </head>
 
 <body>
 <div class="container">
-  <h1>🗺️ Pot dostave</h1>
+  <h1>🗺️ Optimalna pot</h1>
   <p><b>Start:</b> Vesca 18, 1217 Vodice</p>
 
-  <div id="poti"></div>
+  <select id="voznik">
+    <option value="ROK">ROK</option>
+    <option value="ANŽE">ANŽE</option>
+    <option value="BLAŽ">BLAŽ</option>
+    <option value="AJDIN">AJDIN</option>
+    <option value="MATEVŽ">MATEVŽ</option>
+  </select>
+
+  <button onclick="optimizirajPot()">Optimiziraj pot</button>
+
+  <div id="rezultat"></div>
 
   <a class="btn" href="admin.html">Nazaj v admin</a>
 </div>
 
 <script>
+const START_NASLOV = "Vesca 18, 1217 Vodice, Slovenija";
 const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
-const vozniki = ["ROK", "ANŽE", "BLAŽ", "AJDIN", "MATEVŽ"];
 
-const vrstniRedKrajev = [
-  "VODICE",
-  "MENGEŠ",
-  "DOMŽALE",
-  "TRZIN",
-  "LJUBLJANA",
-  "MEDVODE",
-  "ŠKOFJA LOKA",
-  "KRANJ",
-  "KAMNIK",
-  "CELJE",
-  "MARIBOR"
-];
+function pocakaj(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-function rangLokacije(lokacija) {
-  const tekst = String(lokacija || "").toUpperCase();
+async function geocode(naslov) {
+  const cacheKey = "geo_" + naslov;
+  const cached = localStorage.getItem(cacheKey);
 
-  for (let i = 0; i < vrstniRedKrajev.length; i++) {
-    if (tekst.includes(vrstniRedKrajev[i])) {
-      return i;
+  if (cached) {
+    return JSON.parse(cached);
+  }
+
+  const url =
+    "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" +
+    encodeURIComponent(naslov);
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  await pocakaj(1100);
+
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  const lokacija = {
+    lat: parseFloat(data[0].lat),
+    lon: parseFloat(data[0].lon)
+  };
+
+  localStorage.setItem(cacheKey, JSON.stringify(lokacija));
+
+  return lokacija;
+}
+
+async function optimizirajPot() {
+  const voznik = document.getElementById("voznik").value;
+  const rezultat = document.getElementById("rezultat");
+
+  rezultat.innerHTML = "<p>Računam optimalno pot...</p>";
+
+  let moje = dostave.filter(d =>
+    String(d.voznik || "").toUpperCase() === voznik.toUpperCase()
+  );
+
+  if (moje.length === 0) {
+    rezultat.innerHTML = "<p>Ta voznik nima dodeljenih dostav.</p>";
+    return;
+  }
+
+  let tocke = [];
+
+  const start = await geocode(START_NASLOV);
+
+  if (!start) {
+    rezultat.innerHTML = "<p>Ne najdem startnega naslova.</p>";
+    return;
+  }
+
+  tocke.push({
+    tip: "START",
+    naslov: START_NASLOV,
+    lat: start.lat,
+    lon: start.lon
+  });
+
+  for (const d of moje) {
+    const naslov =
+      (d["Lokacija dostave"] || "") + ", Slovenija";
+
+    const geo = await geocode(naslov);
+
+    if (geo) {
+      tocke.push({
+        tip: "DOSTAVA",
+        stranka: d["Stranka"] || "Brez stranke",
+        naslov: d["Lokacija dostave"] || "",
+        status: d["Status"] || "Pripravljeno",
+        lat: geo.lat,
+        lon: geo.lon
+      });
     }
   }
 
-  return 999;
-}
+  if (tocke.length < 2) {
+    rezultat.innerHTML = "<p>Ni dovolj naslovov za pot.</p>";
+    return;
+  }
 
-let html = "";
+  const koordinate = tocke.map(t => `${t.lon},${t.lat}`).join(";");
 
-vozniki.forEach(voznik => {
-  let njegove = dostave.filter(d => d.voznik === voznik);
+  const osrmUrl =
+    "https://router.project-osrm.org/trip/v1/driving/" +
+    koordinate +
+    "?source=first&roundtrip=true&overview=false";
 
-  njegove.sort((a, b) => {
-    return rangLokacije(a["Lokacija dostave"]) - rangLokacije(b["Lokacija dostave"]);
+  const res = await fetch(osrmUrl);
+  const data = await res.json();
+
+  if (!data || data.code !== "Ok") {
+    rezultat.innerHTML = "<p>Napaka pri optimizaciji poti.</p>";
+    return;
+  }
+
+  let urejeno = data.waypoints
+    .map((w, i) => ({
+      ...tocke[i],
+      vrstniRed: w.waypoint_index
+    }))
+    .sort((a, b) => a.vrstniRed - b.vrstniRed);
+
+  let html = `<div class="delivery"><h2>${voznik}</h2>`;
+
+  urejeno.forEach((t, i) => {
+    html += `
+      <div class="mini-delivery">
+        <b>${i + 1}. ${t.tip === "START" ? "START" : t.stranka}</b><br>
+        ${t.naslov}<br>
+        ${t.status ? "Status: " + t.status : ""}
+      </div>
+    `;
   });
 
   html += `
-    <div class="delivery">
-      <h2>${voznik}</h2>
-  `;
+    <p style="font-size:13px;">
+      Optimizacija: OSRM + OpenStreetMap. Naslovi so geokodirani preko Nominatim.
+    </p>
+  </div>`;
 
-  if (njegove.length === 0) {
-    html += `<p>Ni dodeljenih dostav.</p>`;
-  } else {
-    njegove.forEach((d, index) => {
-      html += `
-        <div class="mini-delivery">
-          <b>${index + 1}. ${d["Stranka"] || "Brez stranke"}</b><br>
-          ${d["Lokacija dostave"] || ""}<br>
-          Status: ${d["Status"] || "Pripravljeno"}
-        </div>
-      `;
-    });
-  }
-
-  html += `</div>`;
-});
-
-document.getElementById("poti").innerHTML = html;
+  rezultat.innerHTML = html;
+}
 </script>
 
 </body>
