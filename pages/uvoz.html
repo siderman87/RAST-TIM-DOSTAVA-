@@ -49,8 +49,11 @@ function preberiExcel() {
       };
     });
 
-    localStorage.clear();
-    localStorage.setItem("dostave", JSON.stringify(json));
+    let stareDostave = JSON.parse(localStorage.getItem("dostave")) || [];
+
+let zdruzeneDostave = [...stareDostave, ...json];
+
+localStorage.setItem("dostave", JSON.stringify(zdruzeneDostave));
 
     document.getElementById("info").innerText =
       "Uvoženih dostav: " + json.length;
