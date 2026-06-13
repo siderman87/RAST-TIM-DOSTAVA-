@@ -53,6 +53,7 @@ function prikaziMojeDostave() {
 
         <button onclick="spremeniStatus(${d.originalIndex}, 'Na poti')">Na poti</button>
         <button onclick="spremeniStatus(${d.originalIndex}, 'Dostavljeno')">Dostavljeno</button>
+        <button onclick="odpriDobavnico(${d.originalIndex})">📄 Dobavnica</button>
       </div>
     `;
   });
@@ -72,7 +73,12 @@ function spremeniStatus(index, status) {
 }
 
 prikaziMojeDostave();
+  
+  function odpriDobavnico(index) {
+  localStorage.setItem("izbranaDobavnica", index);
+  window.location.href = "dobavnica.html";
+}
 </script>
-
+  
 </body>
 </html>
