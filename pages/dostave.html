@@ -37,6 +37,7 @@ function prikaziDostave() {
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
         <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+        <p><b>Čas spremembe:</b> ${d["cas_spremembe"] || "-"}</p>
         <p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
 
         <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
