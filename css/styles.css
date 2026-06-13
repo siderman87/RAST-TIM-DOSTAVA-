@@ -13,8 +13,8 @@ body {
 
 .container {
   width: 95%;
-  max-width: 1200px;
-  margin: 30px auto;
+  max-width: 8500px;
+  margin: 15px auto;
   text-align: center;
 }
 
@@ -52,9 +52,9 @@ input {
 
 .delivery {
   background: white;
-  padding: 20px;
+  padding: 12px;
   border-radius: 16px;
-  margin: 18px 0;
+  margin: 10px 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.10);
   text-align: left;
 }
@@ -133,4 +133,35 @@ input {
 
 .route-content p {
   margin: 6px 0;
+}
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: 20px;
+}
+
+h3 {
+  font-size: 17px;
+}
+
+p {
+  font-size: 14px;
+}
+
+.btn,
+button {
+  padding: 10px;
+  font-size: 14px;
+}
+
+.route-card {
+  padding: 10px;
+  margin: 8px 0;
+}
+
+.route-number {
+  min-width: 32px;
+  height: 32px;
 }
