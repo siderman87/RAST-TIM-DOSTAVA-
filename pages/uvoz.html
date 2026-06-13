@@ -30,8 +30,10 @@
 
 function preberiExcel(){
 
-    const file = document.getElementById("excelFile").files[0];
+    localStorage.setItem("dostave", JSON.stringify(json));
+document.getElementById("rezultat").innerHTML = html;
 
+alert("Excel je uspešno uvožen in shranjen.");
     if(!file){
         alert("Izberi Excel datoteko.");
         return;
@@ -80,4 +82,6 @@ function preberiExcel(){
 </script>
 
 </body>
-</html>
+</html></div>
+<a class="btn" href="dostave.html">Poglej dostave</a>
+<a class="btn" href="admin.html">Nazaj v admin</a>
