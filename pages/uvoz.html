@@ -18,8 +18,6 @@
 
   <p id="info"></p>
 
-  <div id="rezultat"></div>
-
   <a class="btn" href="dostave.html">Poglej dostave</a>
   <a class="btn" href="admin.html">Nazaj v admin</a>
 </div>
@@ -36,46 +34,28 @@ function preberiExcel() {
   const reader = new FileReader();
 
   reader.onload = function(e) {
-    try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      const json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+    let json = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
-json.forEach(d => {
-  d.voznik = "";
-  d.Status = "Pripravljeno";
-  d.cas_spremembe = "";
-});
+    json = json.map(d => {
+      return {
+        ...d,
+        voznik: "",
+        Status: "Pripravljeno",
+        cas_spremembe: ""
+      };
+    });
 
-localStorage.removeItem("dostave");
-localStorage.setItem("dostave", JSON.stringify(json));
+    localStorage.clear();
+    localStorage.setItem("dostave", JSON.stringify(json));
 
-      document.getElementById("info").innerText =
-        "Uvoženih vrstic: " + json.length;
+    document.getElementById("info").innerText =
+      "Uvoženih dostav: " + json.length;
 
-      let html = "";
-
-      json.forEach(vrstica => {
-        html += `
-          <div class="delivery">
-            <h3>${vrstica["Stranka"] || "Brez stranke"}</h3>
-            <p><b>Lokacija:</b> ${vrstica["Lokacija dostave"] || ""}</p>
-            <p><b>Vrednost:</b> ${vrstica["Vrednost"] || ""}</p>
-            <p><b>Status:</b> Pripravljeno</p>
-          </div>
-        `;
-      });
-
-      document.getElementById("rezultat").innerHTML = html;
-
-      alert("Excel je uspešno uvožen.");
-    } catch (err) {
-      alert("Napaka pri uvozu Excela.");
-      console.error(err);
-    }
+    alert("Excel je uvožen. Zdaj klikni Poglej dostave.");
   };
 
   reader.readAsArrayBuffer(file);
