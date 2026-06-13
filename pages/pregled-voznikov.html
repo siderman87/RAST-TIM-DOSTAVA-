@@ -1,3 +1,105 @@
-<a class="btn" href="pregled-voznikov.html">
-👨 Vozniki
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pregled voznikov</title>
+
+<link rel="stylesheet" href="../css/styles.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>👨 Pregled voznikov</h1>
+
+<div id="pregled"></div>
+
+<a class="btn" href="admin.html">
+Nazaj v admin
 </a>
+
+</div>
+
+<script>
+
+const dostave = JSON.parse(
+localStorage.getItem("dostave")
+) || [];
+
+const vozniki = [
+"ROK",
+"ANŽE",
+"BLAŽ",
+"AJDIN",
+"MATEVŽ"
+];
+
+let html = "";
+
+vozniki.forEach(voznik=>{
+
+    html += `
+
+    <div class="delivery">
+
+    <h2>${voznik}</h2>
+
+    `;
+
+    const moje = dostave.filter(
+        d=>d.voznik===voznik
+    );
+
+    if(moje.length===0){
+
+        html += `
+        Ni dodeljenih dostav
+        `;
+
+    }
+
+    moje.forEach(d=>{
+
+        html += `
+
+        <div class="mini-delivery">
+
+        <b>
+        ${d["Stranka"]}
+        </b>
+
+        <br>
+
+        ${d["Lokacija dostave"]}
+
+        <br>
+
+        Status:
+
+        ${d["Status"]}
+
+        </div>
+
+        `;
+
+    });
+
+    html += `
+
+    </div>
+
+    `;
+
+});
+
+document.getElementById(
+"pregled"
+).innerHTML = html;
+
+</script>
+
+</body>
+</html>
