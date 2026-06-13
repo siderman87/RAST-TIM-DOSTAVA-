@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dostave</title>
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+<div class="container">
+  <h1>🚚 Razporejanje dostav</h1>
+
+  <div id="statistika"></div>
+
+  <input id="iskanje" placeholder="Išči stranko..." oninput="prikaziDostave()">
+
+  <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
+
+  <div id="seznam"></div>
+
+  <a class="btn" href="admin.html">Nazaj v admin</a>
+</div>
+
+<script>
+let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+
+function prikaziStatistiko() {
+  const skupaj = dostave.length;
+  const pripravljeno = dostave.filter(d => d.Status === "Pripravljeno").length;
+  const napoti = dostave.filter(d => d.Status === "Na poti").length;
+  const dostavljeno = dostave.filter(d => d.Status === "Dostavljeno").length;
+
+  document.getElementById("statistika").innerHTML = `
+    <div class="stats">
+      <b>Skupaj:</b> ${skupaj}<br>
+      ⚪ Pripravljeno: ${pripravljeno}<br>
+      🟠 Na poti: ${napoti}<br>
+      🟢 Dostavljeno: ${dostavljeno}
+    </div>
+  `;
+}
+
+function statusClass(status) {
+  if (status === "Dostavljeno") return "status-dostavljeno";
+  if (status === "Na poti") return "status-napoti";
+  return "status-pripravljeno";
+}
+
+function prikaziDostave() {
+  prikaziStatistiko();
+
+  const iskanje = document.getElementById("iskanje").value.toLowerCase();
+  const seznam = document.getElementById("seznam");
+
+  let html = "";
+
+  dostave.forEach((d, index) => {
+    const stranka = d["Stranka"] || "Brez stranke";
+
+    if (!stranka.toLowerCase().includes(iskanje)) return;
+
+    const voznik = String(d.voznik || "").trim();
+    const status = d["Status"] || "Pripravljeno";
+
+    html += `
+      <div class="delivery">
+        <span class="delete-btn" onclick="odstraniDostavo(${index})">❌</span>
+
+        <h3>${stranka}</h3>
+
+        <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
+        <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
+        <p><b>Status:</b> <span class="${statusClass(status)}">${status}</span></p>
+        <p><b>Voznik:</b> ${voznik || "Ni dodeljen"}</p>
+        <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
+
+        ${
+          voznik === ""
+          ? `
+            <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
+            <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
+            <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
+            <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
+            <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
+          `
+          : `
+            <button onclick="spremeniVoznika(${index})">Spremeni voznika</button>
+          `
+        }
+      </div>
+    `;
+  });
+
+  seznam.innerHTML = html || "<p>Ni zadetkov.</p>";
+}
+
+function dodeli(index, voznik) {
+  dostave[index].voznik = voznik;
+  dostave[index].Status = "Pripravljeno";
+  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+  prikaziDostave();
+}
+
+function spremeniVoznika(index) {
+  dostave[index].voznik = "";
+  dostave[index].Status = "Pripravljeno";
+  dostave[index].cas_spremembe = "";
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+  prikaziDostave();
+}
+
+function resetirajDodelitve() {
+  if (!confirm("Res resetiram vse dodelitve?")) return;
+
+  dostave.forEach(d => {
+    d.voznik = "";
+    d.Status = "Pripravljeno";
+    d.cas_spremembe = "";
+  });
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+  prikaziDostave();
+}
+
+function odstraniDostavo(index) {
+  if (!confirm("Res izbrišem to dostavo?")) return;
+
+  dostave.splice(index, 1);
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+
+  prikaziDostave();
+}
+
+prikaziDostave();
+</script>
+
+</body>
+</html>
