@@ -165,3 +165,21 @@ button {
   min-width: 32px;
   height: 32px;
 }
+.delivery{
+    position:relative;
+}
+
+.delete-btn{
+    position:absolute;
+    top:10px;
+    right:15px;
+    cursor:pointer;
+    color:red;
+    font-size:20px;
+    font-weight:bold;
+}
+
+.delete-btn:hover{
+    color:darkred;
+    transform:scale(1.2);
+}
