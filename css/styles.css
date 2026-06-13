@@ -1,109 +1,104 @@
 html, body {
   margin: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   font-family: Arial, sans-serif;
   background: #eef5ee;
-  display: grid;
-  place-items: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .container {
-  width: 90%;
-  max-width: 420px;
+  width: 95%;
+  max-width: 1200px;
+  margin: 30px auto;
   text-align: center;
 }
 
-.btn {
+h1 {
+  color: #2e7d32;
+}
+
+.btn,
+button {
   display: block;
   width: 260px;
-  margin: 15px auto;
-  padding: 16px;
+  max-width: 100%;
+  margin: 12px auto;
+  padding: 15px;
   background: #2e7d32;
   color: white;
   text-decoration: none;
+  border: none;
   border-radius: 12px;
   font-weight: bold;
-}input, button {
-  width: 260px;
-  padding: 16px;
-  margin: 10px auto;
+  font-size: 16px;
+}
+
+input {
+  width: 90%;
+  max-width: 500px;
+  padding: 15px;
+  margin: 15px auto;
   display: block;
   border-radius: 12px;
   border: 1px solid #ccc;
-  font-size: 18px;
+  font-size: 17px;
   text-align: center;
 }
 
-button {
-  background: #2e7d32;
-  color: white;
-  font-weight: bold;
-  border: none;
-}
-
-#message {
-  color: red;
-  font-weight: bold;
-}.delivery {
-  background: #f1f8e9;
-  padding: 15px;
-  border-radius: 12px;
-  margin: 15px 0;
+.delivery {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin: 18px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
   text-align: left;
-}.delivery{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 0 10px rgba(0,0,0,.1);
-    margin-top:20px;
 }
 
-button{
-    width:100%;
-    background:#2e7d32;
-    color:white;
-    border:none;
-    padding:15px;
-    border-radius:10px;
-    font-size:16px;
-}.delivery{
-    background:white;
-    padding:20px;
-    border-radius:15px;
-    margin-top:20px;
-    box-shadow:0 0 10px rgba(0,0,0,.1);
-    text-align:left;
-}
 .stats {
   background: #e8f5e9;
-  padding: 15px;
-  border-radius: 14px;
-  margin-bottom: 15px;
+  padding: 18px;
+  border-radius: 16px;
+  margin: 15px 0 20px 0;
   text-align: left;
-  line-height: 1.7;
+  line-height: 1.8;
+  font-size: 17px;
+}
+
+.status-pripravljeno,
+.status-napoti,
+.status-dostavljeno {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  display: inline-block;
 }
 
 .status-pripravljeno {
-  background: #eeeeee;
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-weight: bold;
+  background: #e0e0e0;
 }
 
 .status-napoti {
   background: #ffcc80;
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-weight: bold;
 }
 
 .status-dostavljeno {
   background: #a5d6a7;
-  padding: 5px 10px;
-  border-radius: 8px;
+}
+
+.mini-delivery {
+  background: #f1f8e9;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  text-align: left;
+}
+
+#message {
+  color: red;
   font-weight: bold;
 }
