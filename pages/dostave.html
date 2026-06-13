@@ -39,6 +39,7 @@ function prikaziDostave() {
             <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
             <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
             <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
+            <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
           `
         }
       </div>
@@ -67,7 +68,17 @@ function spremeniVoznika(index) {
 }
 
 prikaziDostave();
-</script>
+</script>function resetirajDodelitve() {
+  dostave.forEach(d => {
+    d.voznik = "";
+    d.Status = "Pripravljeno";
+    d.cas_spremembe = "";
+  });
+
+  localStorage.setItem("dostave", JSON.stringify(dostave));
+  prikaziDostave();
+}
+  
 
 </body>
 </html>
