@@ -11,6 +11,10 @@
 <div class="container">
   <h1>🚚 Razporejanje dostav</h1>
 
+  <div id="statistika"></div>
+
+  <input id="iskanje" placeholder="Išči stranko..." oninput="prikaziDostave()">
+
   <button onclick="resetirajDodelitve()">Resetiraj dodelitve</button>
 
   <div id="seznam"></div>
@@ -21,26 +25,51 @@
 <script>
 let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 
-function prikaziDostave() {
-  const seznam = document.getElementById("seznam");
+function prikaziStatistiko() {
+  const skupaj = dostave.length;
+  const pripravljeno = dostave.filter(d => d.Status === "Pripravljeno").length;
+  const napoti = dostave.filter(d => d.Status === "Na poti").length;
+  const dostavljeno = dostave.filter(d => d.Status === "Dostavljeno").length;
 
-  if (dostave.length === 0) {
-    seznam.innerHTML = "<p>Ni uvoženih dostav. Najprej uvozi Excel.</p>";
-    return;
-  }
+  document.getElementById("statistika").innerHTML = `
+    <div class="stats">
+      <b>Skupaj:</b> ${skupaj}<br>
+      ⚪ Pripravljeno: ${pripravljeno}<br>
+      🟠 Na poti: ${napoti}<br>
+      🟢 Dostavljeno: ${dostavljeno}
+    </div>
+  `;
+}
+
+function statusClass(status) {
+  if (status === "Dostavljeno") return "status-dostavljeno";
+  if (status === "Na poti") return "status-napoti";
+  return "status-pripravljeno";
+}
+
+function prikaziDostave() {
+  prikaziStatistiko();
+
+  const iskanje = document.getElementById("iskanje").value.toLowerCase();
+  const seznam = document.getElementById("seznam");
 
   let html = "";
 
   dostave.forEach((d, index) => {
+    const stranka = d["Stranka"] || "Brez stranke";
+
+    if (!stranka.toLowerCase().includes(iskanje)) return;
+
     const voznik = String(d.voznik || "").trim();
+    const status = d["Status"] || "Pripravljeno";
 
     html += `
       <div class="delivery">
-        <h3>${d["Stranka"] || "Brez stranke"}</h3>
+        <h3>${stranka}</h3>
 
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
-        <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
+        <p><b>Status:</b> <span class="${statusClass(status)}">${status}</span></p>
         <p><b>Voznik:</b> ${voznik || "Ni dodeljen"}</p>
         <p><b>Čas:</b> ${d["cas_spremembe"] || "-"}</p>
 
@@ -53,15 +82,13 @@ function prikaziDostave() {
             <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
             <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
           `
-          : `
-            <button onclick="spremeniVoznika(${index})">Spremeni voznika</button>
-          `
+          : `<button onclick="spremeniVoznika(${index})">Spremeni voznika</button>`
         }
       </div>
     `;
   });
 
-  seznam.innerHTML = html;
+  seznam.innerHTML = html || "<p>Ni zadetkov.</p>";
 }
 
 function dodeli(index, voznik) {
@@ -70,7 +97,6 @@ function dodeli(index, voznik) {
   dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
-
   prikaziDostave();
 }
 
@@ -80,7 +106,6 @@ function spremeniVoznika(index) {
   dostave[index].cas_spremembe = "";
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
-
   prikaziDostave();
 }
 
@@ -92,7 +117,6 @@ function resetirajDodelitve() {
   });
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
-
   prikaziDostave();
 }
 
