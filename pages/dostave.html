@@ -23,7 +23,7 @@ function prikaziDostave() {
   let html = "";
 
   dostave.forEach((d, index) => {
-    let voznik = d.voznik || "";
+    let voznik = String(d.voznik || "").trim();
 
     html += `
       <div class="delivery">
