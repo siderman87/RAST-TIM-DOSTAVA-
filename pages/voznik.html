@@ -1,1 +1,30 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <title>Voznik</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1 id="imeVoznika">Voznik</h1>
+    <p>Tukaj bodo tvoje dostave.</p>
 
+    <div class="delivery">
+      <strong>Test dostava</strong><br>
+      Kupec: Gostilna Test<br>
+      Naslov: Ljubljana<br>
+      Status: Pripravljeno
+    </div>
+
+    <a class="btn" href="../index.html">Odjava</a>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      document.getElementById("imeVoznika").innerText = user.name;
+    }
+  </script>
+</body>
+</html>
