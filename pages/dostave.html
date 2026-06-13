@@ -10,9 +10,7 @@
 <body>
 <div class="container">
   <h1>🚚 Razporejanje dostav</h1>
-
   <div id="seznam"></div>
-
   <a class="btn" href="admin.html">Nazaj v admin</a>
 </div>
 
@@ -22,31 +20,31 @@ let dostave = JSON.parse(localStorage.getItem("dostave")) || [];
 function prikaziDostave() {
   const seznam = document.getElementById("seznam");
 
-  if (dostave.length === 0) {
-    seznam.innerHTML = "<p>Ni uvoženih dostav. Najprej uvozi Excel.</p>";
-    return;
-  }
-
   let html = "";
 
   dostave.forEach((d, index) => {
+    let voznik = d.voznik || "";
+
     html += `
       <div class="delivery">
         <h3>${d["Stranka"] || "Brez stranke"}</h3>
-
         <p><b>Lokacija:</b> ${d["Lokacija dostave"] || ""}</p>
         <p><b>Vrednost:</b> ${d["Vrednost"] || ""}</p>
         <p><b>Status:</b> ${d["Status"] || "Pripravljeno"}</p>
-<p><b>Voznik:</b> ${d["voznik"] || "Ni dodeljen"}</p>
-<p><b>Čas spremembe:</b> ${d["cas_spremembe"] || "-"}</p>
-  <p><b>Dodeljeno:</b> ${d["voznik"]}</p>
-  <button onclick="odstraniVoznika(${index})">Spremeni voznika</button>
+        <p><b>Voznik:</b> ${voznik || "Ni dodeljen"}</p>
+        <p><b>Čas spremembe:</b> ${d["cas_spremembe"] || "-"}</p>
 
-        <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
-        <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
-        <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
-        <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
-        <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
+        ${
+          voznik
+          ? `<button onclick="spremeniVoznika(${index})">Spremeni voznika</button>`
+          : `
+            <button onclick="dodeli(${index}, 'ROK')">Dodeli ROK</button>
+            <button onclick="dodeli(${index}, 'ANŽE')">Dodeli ANŽE</button>
+            <button onclick="dodeli(${index}, 'BLAŽ')">Dodeli BLAŽ</button>
+            <button onclick="dodeli(${index}, 'AJDIN')">Dodeli AJDIN</button>
+            <button onclick="dodeli(${index}, 'MATEVŽ')">Dodeli MATEVŽ</button>
+          `
+        }
       </div>
     `;
   });
@@ -57,17 +55,23 @@ function prikaziDostave() {
 function dodeli(index, voznik) {
   dostave[index].voznik = voznik;
   dostave[index].Status = "Pripravljeno";
+  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
 
   localStorage.setItem("dostave", JSON.stringify(dostave));
+  prikaziDostave();
+}
 
-  alert("Dostava je dodeljena vozniku: " + voznik);
+function spremeniVoznika(index) {
+  dostave[index].voznik = "";
+  dostave[index].Status = "Pripravljeno";
+  dostave[index].cas_spremembe = new Date().toLocaleString("sl-SI");
 
+  localStorage.setItem("dostave", JSON.stringify(dostave));
   prikaziDostave();
 }
 
 prikaziDostave();
-</script>  <p><b>Dodeljeno:</b> ${d["voznik"]}</p>
-  <button onclick="odstraniVoznika(${index})">Spremeni voznika</button>
+</script>
 
 </body>
 </html>
