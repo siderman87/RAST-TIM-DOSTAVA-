@@ -19,8 +19,29 @@
 
 <script>
 const START_NASLOV = "Vesca 18, 1217 Vodice, Slovenija";
+
 const user = JSON.parse(localStorage.getItem("user"));
 const dostave = JSON.parse(localStorage.getItem("dostave")) || [];
+const stranke = JSON.parse(localStorage.getItem("stranke")) || [];
+
+function normaliziraj(text) {
+  return String(text || "")
+    .toUpperCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function najdiPolniNaslov(imeStranke) {
+  const najdena = stranke.find(s =>
+    normaliziraj(s.Stranka) === normaliziraj(imeStranke)
+  );
+
+  if (najdena && najdena["Polni naslov"]) {
+    return najdena["Polni naslov"];
+  }
+
+  return "";
+}
 
 function statusClass(status) {
   if (status === "Dostavljeno") return "status-dostavljeno";
@@ -86,13 +107,11 @@ async function izracunajMojoPot() {
   rezultat.innerHTML = "<p>Računam tvojo pot...</p>";
 
   let moje = dostave.filter(d =>
-    String(d.voznik || "").toUpperCase() === String(user.name || "").toUpperCase()
+    normaliziraj(d.voznik) === normaliziraj(user.name)
   );
 
-  moje = moje.filter(d => d.Status !== "Dostavljeno");
-
   if (moje.length === 0) {
-    rezultat.innerHTML = "<p>Nimaš odprtih dostav.</p>";
+    rezultat.innerHTML = "<p>Nimaš dodeljenih dostav.</p>";
     return;
   }
 
@@ -114,24 +133,44 @@ async function izracunajMojoPot() {
     lon: start.lon
   });
 
+  let brezNaslova = [];
+
   for (const d of moje) {
-    const naslov = (d["Lokacija dostave"] || "") + ", Slovenija";
-    const geo = await geocode(naslov);
+    const ime = d["Stranka"] || "Brez stranke";
+
+    let polniNaslov = najdiPolniNaslov(ime);
+
+    if (!polniNaslov) {
+      brezNaslova.push(ime);
+      continue;
+    }
+
+    if (!polniNaslov.toUpperCase().includes("SLOVENIJA")) {
+      polniNaslov = polniNaslov + ", Slovenija";
+    }
+
+    const geo = await geocode(polniNaslov);
 
     if (geo) {
       tocke.push({
         tip: "DOSTAVA",
-        stranka: d["Stranka"] || "Brez stranke",
-        naslov: d["Lokacija dostave"] || "",
+        stranka: ime,
+        naslov: polniNaslov,
         status: d["Status"] || "Pripravljeno",
         lat: geo.lat,
         lon: geo.lon
       });
+    } else {
+      brezNaslova.push(ime + " - naslov ni najden");
     }
   }
 
   if (tocke.length < 2) {
-    rezultat.innerHTML = "<p>Ni dovolj naslovov za pot.</p>";
+    rezultat.innerHTML = `
+      <p>Ni dovolj naslovov za optimizacijo.</p>
+      <p>Manjkajo naslovi za:</p>
+      <p>${brezNaslova.join("<br>")}</p>
+    `;
     return;
   }
 
@@ -175,13 +214,22 @@ async function izracunajMojoPot() {
           <p>📍 ${t.naslov}</p>
           ${
             t.status
-            ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
-            : ""
+              ? `<p>Status: <span class="${statusClass(t.status)}">${t.status}</span></p>`
+              : ""
           }
         </div>
       </div>
     `;
   });
+
+  if (brezNaslova.length > 0) {
+    html += `
+      <div class="delivery">
+        <h3>⚠️ Stranke brez najdenega naslova</h3>
+        <p>${brezNaslova.join("<br>")}</p>
+      </div>
+    `;
+  }
 
   rezultat.innerHTML = html;
 }
